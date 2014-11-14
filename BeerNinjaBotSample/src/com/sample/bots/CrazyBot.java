@@ -26,12 +26,12 @@ public class CrazyBot implements BeerBot{
 		} else if(move == 3) {
 			return Move.DOWN;
 		} 
-//		try {
-//			Thread.sleep(5000);
-//		} catch (InterruptedException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
+		try {
+			Thread.sleep(5000);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		return Move.PICK;
 	}
 

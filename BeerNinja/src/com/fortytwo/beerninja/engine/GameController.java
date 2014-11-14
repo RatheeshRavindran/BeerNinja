@@ -6,6 +6,13 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import javax.swing.JOptionPane;
 
@@ -22,9 +29,11 @@ import com.fortytwo.beerninja.model.client.Move;
 import com.fortytwo.beerninja.model.client.Position;
 
 /**
- * Controller class of the game. Main responsibility is getting the moves from the playing bots and requesting the game engine.
+ * Controller class of the game. Main responsibility is getting the moves from
+ * the playing bots and requesting the game engine.
+ * 
  * @author Ratheesh Ravindran
- *
+ * 
  */
 public class GameController implements GameBoard, GUINotifictaion {
 	private GameEngine engine;
@@ -35,7 +44,7 @@ public class GameController implements GameBoard, GUINotifictaion {
 	private boolean gameOver;
 	private GameNotificationListener listener;
 	private Timer timer;
-	
+
 	public GameController(GameEngine engine, BeerBot botOne, BeerBot botTwo,
 			GameDisplay gameDisplay, GameNotificationListener listener)
 			throws InvalidArgumentException {
@@ -89,18 +98,18 @@ public class GameController implements GameBoard, GUINotifictaion {
 					pass(botOne.getName());
 				}
 			} catch (Exception e) {
-				
+
 			}
 			System.out.println(botName + " : " + move.toString());
 		}
 		timer = new Timer();
 		timer.schedule(new TimerTask() {
-			  @Override
-			  public void run() {
-				  gameOver = true;
-				  listener.gameTimeout();
-			  }
-			}, 3*60*1000);//10*1000
+			@Override
+			public void run() {
+				gameOver = true;
+				listener.gameTimeout();
+			}
+		}, 3 * 60 * 1000);// 10*1000
 	}
 
 	public void stop() {
@@ -210,27 +219,17 @@ public class GameController implements GameBoard, GUINotifictaion {
 	}
 
 	@Override
-	public void animationCompleted(String botName, Move direction) {
+	public void animationCompleted(final String botName, Move direction) {
 		try {
-			// Thread.sleep(500);
-			// In a thread?
 			String winner = null;
 			if (direction == Move.PICK && ((winner = gameOver()) != null)) {
 				timer.cancel();
 				gameOver = true;
 				listener.gameFinished(winner, "");
 			} else {
-				try {
-					makeMove(botName);
-				}catch (Exception e) {
-					gameOver = true;
-					timer.cancel();
-					winner = botOneName;
-					if(botOneName.equals(botName)) {
-						winner = botTwoName;
-					}
-					listener.gameFinished(winner, botName + " caused exception.");
-				}
+				//makeMove(botName);
+				Thread t= new Thread (new MoveThread(botName));
+				t.start();
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -263,21 +262,40 @@ public class GameController implements GameBoard, GUINotifictaion {
 		if (gameOver) {
 			return;
 		}
-		BeerBot botOne = bots.get(botName);
-		Move move = botOne.makeMove();
-		System.out.println("Listener " + botName + " : " + move.toString());
-		if (move == Move.LEFT) {
-			moveLeft(botOne.getName());
-		} else if (move == Move.RIGHT) {
-			moveRight(botOne.getName());
-		} else if (move == Move.UP) {
-			moveUp(botOne.getName());
-		} else if (move == Move.DOWN) {
-			moveDown(botOne.getName());
-		} else if (move == Move.PICK) {
-			pick(botOne.getName());
-		} else if (move == Move.PASS) {
-			pass(botOne.getName());
+		try {
+			final BeerBot botOne = bots.get(botName);
+			Move move = botOne.makeMove();
+//			ExecutorService service = Executors.newSingleThreadExecutor();
+//			Future<Move> future = service.submit(new Callable<Move>() {
+//				@Override
+//				public Move call() throws Exception {
+//					return botOne.makeMove();
+//				}
+//			});
+//			Move move = null;
+//			move = future.get(3, TimeUnit.SECONDS);
+			System.out.println("Listener " + botName + " : " + move.toString());
+			if (move == Move.LEFT) {
+				moveLeft(botOne.getName());
+			} else if (move == Move.RIGHT) {
+				moveRight(botOne.getName());
+			} else if (move == Move.UP) {
+				moveUp(botOne.getName());
+			} else if (move == Move.DOWN) {
+				moveDown(botOne.getName());
+			} else if (move == Move.PICK) {
+				pick(botOne.getName());
+			} else if (move == Move.PASS) {
+				pass(botOne.getName());
+			}
+		} catch (Exception e) {
+			gameOver = true;
+			timer.cancel();
+			String winner = botOneName;
+			if (botOneName.equals(botName)) {
+				winner = botTwoName;
+			}
+			listener.gameFinished(winner, botName + " caused exception.");
 		}
 	}
 
@@ -286,4 +304,23 @@ public class GameController implements GameBoard, GUINotifictaion {
 		return engine.getItemAtPosition(position);
 	}
 
+	private final class MoveThread implements Runnable {
+
+		private String botName;
+
+		public MoveThread(String botName) {
+			this.botName = botName;
+		}
+		
+		@Override
+		public void run() {
+			try {
+				makeMove(botName);
+			} catch (InvalidArgumentException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		
+	}
 }
