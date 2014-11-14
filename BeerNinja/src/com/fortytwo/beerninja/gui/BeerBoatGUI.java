@@ -8,6 +8,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.ServiceLoader;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.swing.*;
 import javax.swing.Box.Filler;
@@ -60,7 +61,7 @@ public class BeerBoatGUI extends JFrame implements GameNotificationListener {
 		super();
 		try {
 			String[] columnNames = { " ", "Karhu", "Karjala", "Koff" };
-			columnPositions = new HashMap<ItemType, Integer>();
+			columnPositions = new ConcurrentHashMap<ItemType, Integer>();//new HashMap<ItemType, Integer>();
 			columnPositions.put(ItemType.Karhu, 1);
 			columnPositions.put(ItemType.Karjala, 2);
 			columnPositions.put(ItemType.Koff, 3);

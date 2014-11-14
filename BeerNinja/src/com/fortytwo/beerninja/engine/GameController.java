@@ -1,5 +1,6 @@
 package com.fortytwo.beerninja.engine;
 
+import java.awt.Point;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -14,7 +15,9 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import javax.swing.JLabel;
 import javax.swing.JOptionPane;
+import javax.swing.SwingWorker;
 
 import com.fortytwo.beerninja.gui.BeerBoatGUI;
 import com.fortytwo.beerninja.gui.GameDisplay;
@@ -44,7 +47,10 @@ public class GameController implements GameBoard, GUINotifictaion {
 	private boolean gameOver;
 	private GameNotificationListener listener;
 	private Timer timer;
-
+	MoveThread t1;
+	MoveThread t2;
+	private ExecutorService executor = Executors.newFixedThreadPool(50);
+	
 	public GameController(GameEngine engine, BeerBot botOne, BeerBot botTwo,
 			GameDisplay gameDisplay, GameNotificationListener listener)
 			throws InvalidArgumentException {
@@ -68,6 +74,8 @@ public class GameController implements GameBoard, GUINotifictaion {
 		Map<ItemType, List<Position>> positions = this.engine
 				.getItemPositions();
 		this.gameDisplay.setItemPositions(positions);
+		t1 = new MoveThread(botOneName);
+		t2 = new MoveThread(botTwoName);
 	}
 
 	public void start() {
@@ -227,9 +235,9 @@ public class GameController implements GameBoard, GUINotifictaion {
 				gameOver = true;
 				listener.gameFinished(winner, "");
 			} else {
-				//makeMove(botName);
-				Thread t= new Thread (new MoveThread(botName));
-				t.start();
+				makeMove(botName);
+//				MoveThreadSwing thread = new MoveThreadSwing(botName);
+//				thread.execute();
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -262,9 +270,14 @@ public class GameController implements GameBoard, GUINotifictaion {
 		if (gameOver) {
 			return;
 		}
-		try {
-			final BeerBot botOne = bots.get(botName);
-			Move move = botOne.makeMove();
+		if(botName.equals(botOneName))
+			executor.execute(t1);
+		else
+			executor.execute(t2);
+		
+//		try {
+//			final BeerBot botOne = bots.get(botName);
+////			Move move = botOne.makeMove();
 //			ExecutorService service = Executors.newSingleThreadExecutor();
 //			Future<Move> future = service.submit(new Callable<Move>() {
 //				@Override
@@ -273,30 +286,31 @@ public class GameController implements GameBoard, GUINotifictaion {
 //				}
 //			});
 //			Move move = null;
-//			move = future.get(3, TimeUnit.SECONDS);
-			System.out.println("Listener " + botName + " : " + move.toString());
-			if (move == Move.LEFT) {
-				moveLeft(botOne.getName());
-			} else if (move == Move.RIGHT) {
-				moveRight(botOne.getName());
-			} else if (move == Move.UP) {
-				moveUp(botOne.getName());
-			} else if (move == Move.DOWN) {
-				moveDown(botOne.getName());
-			} else if (move == Move.PICK) {
-				pick(botOne.getName());
-			} else if (move == Move.PASS) {
-				pass(botOne.getName());
-			}
-		} catch (Exception e) {
-			gameOver = true;
-			timer.cancel();
-			String winner = botOneName;
-			if (botOneName.equals(botName)) {
-				winner = botTwoName;
-			}
-			listener.gameFinished(winner, botName + " caused exception.");
-		}
+//			move = future.get(2, TimeUnit.SECONDS);
+//			System.out.println("Listener " + botName + " : " + move.toString());
+//			if (move == Move.LEFT) {
+//				moveLeft(botOne.getName());
+//			} else if (move == Move.RIGHT) {
+//				moveRight(botOne.getName());
+//			} else if (move == Move.UP) {
+//				moveUp(botOne.getName());
+//			} else if (move == Move.DOWN) {
+//				moveDown(botOne.getName());
+//			} else if (move == Move.PICK) {
+//				pick(botOne.getName());
+//			} else if (move == Move.PASS) {
+//				pass(botOne.getName());
+//			}
+//			System.out.println("Listener done");
+//		} catch (Exception e) {
+//			gameOver = true;
+//			timer.cancel();
+//			String winner = botOneName;
+//			if (botOneName.equals(botName)) {
+//				winner = botTwoName;
+//			}
+//			listener.gameFinished(winner, botName + " caused exception.");
+//		}
 	}
 
 	@Override
@@ -315,12 +329,65 @@ public class GameController implements GameBoard, GUINotifictaion {
 		@Override
 		public void run() {
 			try {
-				makeMove(botName);
-			} catch (InvalidArgumentException e) {
+				try {
+					final BeerBot botOne = bots.get(botName);
+//					Move move = botOne.makeMove();
+					ExecutorService service = Executors.newSingleThreadExecutor();
+					Future<Move> future = service.submit(new Callable<Move>() {
+						@Override
+						public Move call() throws Exception {
+							return botOne.makeMove();
+						}
+					});
+					Move move = null;
+					move = future.get(2, TimeUnit.SECONDS);
+					System.out.println("Listener " + botName + " : " + move.toString());
+					if (move == Move.LEFT) {
+						moveLeft(botOne.getName());
+					} else if (move == Move.RIGHT) {
+						moveRight(botOne.getName());
+					} else if (move == Move.UP) {
+						moveUp(botOne.getName());
+					} else if (move == Move.DOWN) {
+						moveDown(botOne.getName());
+					} else if (move == Move.PICK) {
+						pick(botOne.getName());
+					} else if (move == Move.PASS) {
+						pass(botOne.getName());
+					}
+					System.out.println("Listener done");
+				} catch (Exception e) {
+					gameOver = true;
+					timer.cancel();
+					String winner = botOneName;
+					if (botOneName.equals(botName)) {
+						winner = botTwoName;
+					}
+					listener.gameFinished(winner, botName + " caused exception.");
+				}
+			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
 		
 	}
+	
+	private class MoveThreadSwing extends SwingWorker<Integer, Integer> {
+		
+		private String botName;
+
+		public MoveThreadSwing(String botName) {
+			this.botName = botName;
+		}
+
+		@Override
+		protected Integer doInBackground() throws Exception {
+			makeMove(botName);
+			return 42;
+		}
+		
+
+	}
+
 }

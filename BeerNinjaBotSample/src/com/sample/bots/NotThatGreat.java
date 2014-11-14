@@ -6,11 +6,11 @@ import com.fortytwo.beerninja.model.client.BeerBot;
 import com.fortytwo.beerninja.model.client.GameBoard;
 import com.fortytwo.beerninja.model.client.Move;
 
-public class CrazyBot implements BeerBot{
+public class NotThatGreat implements BeerBot{
 	private GameBoard gameBoard;
 	@Override
 	public String getName() {
-		return "Crazy Bot";
+		return "Not That Great";
 	}
 
 	@Override
@@ -26,12 +26,6 @@ public class CrazyBot implements BeerBot{
 		} else if(move == 3) {
 			return Move.DOWN;
 		} 
-		try {
-			Thread.sleep(2000);
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
 		return Move.PICK;
 	}
 

@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import com.fortytwo.beerninja.model.GameCell;
 import com.fortytwo.beerninja.model.MoveStatus;
@@ -34,8 +35,8 @@ public class BeerBotEngine implements GameEngine {
 		gameCells = new GameCell[size.getRowCount()][size.getColumnCount()];
 		itemTypes = new HashMap<ItemType, Integer>();
 		currentItemTypes = new HashMap<ItemType, Integer>();
-		botPositions = new HashMap<String, Position>(2);
-		botItemCounts = new HashMap<String, Map<ItemType,Integer>>();
+		botPositions = new ConcurrentHashMap<String, Position>(2);
+		botItemCounts = new ConcurrentHashMap<String, Map<ItemType,Integer>>();
 		initialize();
 	}
 	
@@ -104,7 +105,7 @@ public class BeerBotEngine implements GameEngine {
 		return Collections.unmodifiableMap(botItemCounts.get(botName));
 	}
 
-	public MoveStatus moveLeft(String botName) throws InvalidArgumentException {
+	synchronized public MoveStatus moveLeft(String botName) throws InvalidArgumentException {
 		if(!botPositions.containsKey(botName)) {
 			throw new InvalidArgumentException("Invalid Bot name.");
 		}
@@ -117,7 +118,7 @@ public class BeerBotEngine implements GameEngine {
 		return MoveStatus.OK;
 	}
 	
-	public MoveStatus moveRight(String botName) throws InvalidArgumentException {
+	synchronized public MoveStatus moveRight(String botName) throws InvalidArgumentException {
 		if(!botPositions.containsKey(botName)) {
 			throw new InvalidArgumentException("Invalid Bot name.");
 		}
@@ -130,7 +131,7 @@ public class BeerBotEngine implements GameEngine {
 		return MoveStatus.OK;
 	}
 
-	public MoveStatus moveUp(String botName) throws InvalidArgumentException {
+	synchronized public MoveStatus moveUp(String botName) throws InvalidArgumentException {
 		if(!botPositions.containsKey(botName)) {
 			throw new InvalidArgumentException("Invalid Bot name.");
 		}
@@ -143,7 +144,7 @@ public class BeerBotEngine implements GameEngine {
 		return MoveStatus.OK;
 	}
 
-	public MoveStatus moveDown(String botName) throws InvalidArgumentException {
+	synchronized public MoveStatus moveDown(String botName) throws InvalidArgumentException {
 		if(!botPositions.containsKey(botName)) {
 			throw new InvalidArgumentException("Invalid Bot name.");
 		}
@@ -157,7 +158,7 @@ public class BeerBotEngine implements GameEngine {
 	}
 
 	@Override
-	public MoveStatus pick(String botName) throws InvalidArgumentException {
+	synchronized public MoveStatus pick(String botName) throws InvalidArgumentException {
 		if(!botPositions.containsKey(botName)) {
 			throw new InvalidArgumentException("Invalid Bot name.");
 		}

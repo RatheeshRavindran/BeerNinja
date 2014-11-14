@@ -86,7 +86,7 @@ public class GameDisplay {
 		return mainLayeredPane;
 	}
 
-	public void setBotPosition(String botName, Position botPosition) {
+	synchronized public void setBotPosition(String botName, Position botPosition) {
 		String imageName;
 		if(botTwoName.equals(botName)) {
 			System.out.println("green for " + botName);
@@ -103,7 +103,7 @@ public class GameDisplay {
 				.getColumnPosition()].add(botOne);
 	}
 
-	public void moveBot(final String botName, Position oldPosition,
+	synchronized public void moveBot(final String botName, Position oldPosition,
 			Position newPosition, final Move direction,final GUINotifictaion listener) {
 		int rank = oldPosition.getRowPosition();
 		int file = oldPosition.getColumnPosition();
