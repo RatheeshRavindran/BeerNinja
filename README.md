@@ -28,15 +28,15 @@ Download the client jar <b>beerbot-client.jar</b><br>
 Write your bot program implementing the interface <b>BeerBot</b>
 How to execute the program?
 =========
-Download the program.
-Unzip
-You should create a jar file containing your bot program and place the jar file in the 'beerbots' folder
-Execute the beerninja.bat file.
-Please upload your bot program here so that it can be tried against others.
+Download the program.<br>
+Unzip<br>
+You should create a jar file containing your bot program and place the jar file in the 'beerbots' folder<br>
+Execute the beerninja.bat file.<br>
+Please upload your bot program here so that it can be tried against others.<br>
 Existing bot programs
 =========
-Download the botprograms jar from here
-(This will be updated when someone upload a bot program)
+Download the botprograms jar from here<br>
+(This will be updated when someone upload a bot program)<br>
 License
 =========
-This has WTFPL license.
+This has WTFPL license.<br>
