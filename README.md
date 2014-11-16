@@ -40,3 +40,5 @@ Download the botprograms jar from here<br>
 License
 =========
 This has WTFPL license.<br>
+Note:
+Idea of LayeredPane usage from https://stackoverflow.com/questions/4687607/does-adding-a-jlabel-to-a-jpanel-hide-the-jpanel/4687759#4687759
